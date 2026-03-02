@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="card" style="padding:28px">
+  <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">
+    📷 New Post
+  </h2>
+
+  <form method="POST"
+    action="{{ url_for('create_post') }}"
+    enctype="multipart/form-data">
+
+    <label class="upload-label" for="image-input">
+      <div class="upload-box" id="upload-preview">
+        <p style="font-size:48px">🖼️</p>
+        <p style="font-weight:700;margin-top:8px">Click to choose photo</p>
+        <p style="color:#9ca3af;font-size:13px;margin-top:4px">
+          JPG, PNG or GIF
+        </p>
+      </div>
+      <input
+        type="file"
+        id="image-input"
+        name="image"
+        accept="image/*"
+        required
+        style="display:none"
+        onchange="previewImage(this)"/>
+    </label>
+
+    <textarea
+      name="caption"
+      placeholder="Write a caption…"
+      style="width:100%;
+        border:1.5px solid #e5e7eb;
+        border-radius:12px;
+        padding:14px;
+        font-size:14px;
+        font-family:inherit;
+        resize:none;
+        height:90px;
+        margin-top:16px;
+        outline:none;
+        display:block"></textarea>
+
+    <button
+      type="submit"
+      class="btn-grad"
+      style="width:100%;
+        margin-top:12px;
+        padding:14px;
+        border:none;
+        border-radius:12px;
+        font-size:15px;
+        font-weight:800;
+        cursor:pointer;
+        color:#fff;
+        display:block">
+      Share Post 🚀
+    </button>
+
+  </form>
+</div>
+
+<script>
+function previewImage(input) {
+  if (input.files && input.files[0]) {
+    var reader = new FileReader()
+    reader.onload = function(e) {
+      document.getElementById('upload-preview').innerHTML =
+        '<img src="' + e.target.result + '" ' +
+        'style="width:100%;height:260px;object-fit:cover;border-radius:12px"/>'
+    }
+    reader.readAsDataURL(input.files[0])
+  }
+}
+</script>
+
+{% endblock %}

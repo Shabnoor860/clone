@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 style="font-size:20px;font-weight:900;margin-bottom:16px">
+  Messages
+</h2>
+
+{% for convo in conversations %}
+<a href="{{ url_for('conversation', user_id=convo.user.id) }}"
+  style="text-decoration:none">
+  <div class="convo-card {% if convo.unread %}convo-unread{% endif %}">
+
+    {% if convo.user.avatar_url %}
+    <img src="/uploads/{{ convo.user.avatar_url }}" class="avatar-md"/>
+    {% else %}
+    <img src="https://i.pravatar.cc/52?u={{ convo.user.id }}"
+      class="avatar-md"/>
+    {% endif %}
+
+    <div style="flex:1;min-width:0">
+      <p style="font-weight:{% if convo.unread %}800{% else %}600{% endif %};
+        font-size:13px">
+        {{ convo.user.username }}
+      </p>
+      <p style="font-size:12px;
+        color:#9ca3af;
+        overflow:hidden;
+        text-overflow:ellipsis;
+        white-space:nowrap">
+        {{ convo.last_msg }}
+      </p>
+    </div>
+
+    {% if convo.unread %}
+    <span class="badge-purple">{{ convo.unread }}</span>
+    {% endif %}
+
+  </div>
+</a>
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">💬</p>
+  <p style="color:#9ca3af;margin-top:8px">No messages yet</p>
+</div>
+{% endfor %}
+
+{% endblock %}

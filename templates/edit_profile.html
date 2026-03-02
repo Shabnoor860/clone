@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="padding:28px">
+  <h2 style="font-size:20px;font-weight:900;margin-bottom:20px">✏️ Edit Profile</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <label style="font-size:13px;font-weight:700;color:#374151">Avatar Photo</label>
+    <input type="file" name="avatar" accept="image/*"
+      style="display:block;margin:8px 0 16px;font-size:13px"/>
+    <label style="font-size:13px;font-weight:700;color:#374151">Full Name</label>
+    <input class="input" type="text" name="full_name"
+      value="{{ current_user.full_name }}" style="margin-bottom:12px"/>
+    <label style="font-size:13px;font-weight:700;color:#374151">Bio</label>
+    <textarea name="bio"
+      style="width:100%;border:1.5px solid #e5e7eb;border-radius:12px;padding:14px;font-size:14px;font-family:inherit;resize:none;height:80px;outline:none">{{ current_user.bio }}</textarea>
+    <button type="submit" class="btn-grad"
+      style="width:100%;margin-top:16px;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer;color:#fff">
+      Save Changes
+    </button>
+  </form>
+</div>
+{% endblock %}

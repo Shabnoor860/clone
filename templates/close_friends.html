@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2 style="font-size:20px;font-weight:900;margin-bottom:4px">⭐ Close Friends</h2>
+<p style="font-size:13px;color:#9ca3af;margin-bottom:16px">
+  These people can see your close friends stories
+</p>
+
+{% for friend in friends %}
+{% if friend %}
+<div style="display:flex;align-items:center;gap:12px;background:#fff;
+  border-radius:14px;border:1px solid #f0f0f0;padding:12px 14px;margin-bottom:8px">
+  {% if friend.avatar_url %}
+  <img src="/uploads/{{ friend.avatar_url }}" class="avatar-sm"/>
+  {% else %}
+  <img src="https://i.pravatar.cc/40?u={{ friend.id }}" class="avatar-sm"/>
+  {% endif %}
+  <p style="flex:1;font-weight:700;font-size:14px">{{ friend.username }}</p>
+  <button onclick="toggleCF({{ friend.id }}, this)"
+    id="cf-btn-{{ friend.id }}"
+    style="border:none;border-radius:10px;padding:8px 14px;
+      font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;
+      background:{% if friend.id in cf_ids %}#fef9c3{% else %}#f3f4f6{% endif %};
+      color:{% if friend.id in cf_ids %}#854d0e{% else %}#374151{% endif %}">
+    {% if friend.id in cf_ids %}⭐ Added{% else %}Add{% endif %}
+  </button>
+</div>
+{% endif %}
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">⭐</p>
+  <p style="color:#9ca3af;margin-top:8px">Follow people to add them as close friends</p>
+</div>
+{% endfor %}
+
+<script>
+function toggleCF(friendId, btn) {
+  fetch('/close-friends/' + friendId + '/toggle', { method: 'POST' })
+    .then(function(r) { return r.json() })
+    .then(function(data) {
+      if (data.status === 'added') {
+        btn.textContent = '⭐ Added'
+        btn.style.background = '#fef9c3'
+        btn.style.color = '#854d0e'
+      } else {
+        btn.textContent = 'Add'
+        btn.style.background = '#f3f4f6'
+        btn.style.color = '#374151'
+      }
+    })
+}
+</script>
+{% endblock %}

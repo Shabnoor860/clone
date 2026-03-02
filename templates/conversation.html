@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div style="display:flex;flex-direction:column;height:75vh">
+
+  <div style="display:flex;
+    align-items:center;
+    gap:12px;
+    padding-bottom:14px;
+    border-bottom:1px solid #f0f0f0;
+    margin-bottom:12px">
+    <a href="{{ url_for('messages') }}"
+      style="font-size:22px;text-decoration:none;color:#111">←</a>
+    {% if other.avatar_url %}
+    <img src="/uploads/{{ other.avatar_url }}" class="avatar-sm"/>
+    {% else %}
+    <img src="https://i.pravatar.cc/40?u={{ other.id }}" class="avatar-sm"/>
+    {% endif %}
+    <p style="font-weight:700;font-size:14px">{{ other.username }}</p>
+  </div>
+
+  <div style="flex:1;overflow-y:auto;padding-bottom:12px"
+    id="msg-list">
+    {% for m in messages %}
+    <div style="display:flex;
+      justify-content:{% if m.sender_id == current_user.id %}flex-end{% else %}flex-start{% endif %};
+      margin-bottom:8px">
+      <div class="bubble {% if m.sender_id == current_user.id %}bubble-mine{% else %}bubble-theirs{% endif %}">
+        {{ m.text }}
+      </div>
+    </div>
+    {% else %}
+    <p style="text-align:center;color:#9ca3af;
+      font-size:13px;margin-top:40px">
+      No messages yet. Say hi! 👋
+    </p>
+    {% endfor %}
+  </div>
+
+  <form method="POST"
+    action="{{ url_for('conversation', user_id=other.id) }}"
+    style="display:flex;
+      gap:10px;
+      border-top:1px solid #f0f0f0;
+      padding-top:12px">
+    <input
+      name="text"
+      placeholder="Message…"
+      autocomplete="off"
+      required
+      style="flex:1;
+        background:#f3f4f6;
+        border:none;
+        border-radius:20px;
+        padding:10px 16px;
+        font-size:13px;
+        outline:none;
+        font-family:inherit"/>
+    <button
+      type="submit"
+      class="btn-grad"
+      style="border:none;
+        border-radius:50%;
+        width:40px;
+        height:40px;
+        font-size:16px;
+        cursor:pointer;
+        flex-shrink:0">
+      ➤
+    </button>
+  </form>
+
+</div>
+
+<script>
+  var msgList = document.getElementById('msg-list')
+  if (msgList) msgList.scrollTop = msgList.scrollHeight
+</script>
+
+{% endblock %}
+```
+
+---
+
+## ▶️ Now Run It
+
+Save all files with `Cmd + S`, then in terminal:
+```
+source venv/bin/activate
+python app.py

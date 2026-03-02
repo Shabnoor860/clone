@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+  <a href="{{ url_for('feed') }}" style="font-size:22px;text-decoration:none;color:#111">←</a>
+  <h2 style="font-size:18px;font-weight:900">Story Viewers</h2>
+</div>
+
+<div class="card" style="padding:16px;margin-bottom:16px">
+  <img src="/uploads/{{ story.media_url }}"
+    style="width:100%;height:200px;object-fit:cover;border-radius:12px"/>
+  <p style="font-size:12px;color:#9ca3af;margin-top:8px;text-align:center">
+    {{ views|length }} view{{ 's' if views|length != 1 }}
+  </p>
+</div>
+
+{% for view in views %}
+{% set viewer = view.viewer %}
+{% if viewer %}
+<div style="display:flex;align-items:center;gap:12px;background:#fff;
+  border-radius:14px;border:1px solid #f0f0f0;padding:12px 14px;margin-bottom:8px">
+  {% if viewer.avatar_url %}
+  <img src="/uploads/{{ viewer.avatar_url }}" class="avatar-sm"/>
+  {% else %}
+  <img src="https://i.pravatar.cc/40?u={{ viewer.id }}" class="avatar-sm"/>
+  {% endif %}
+  <div style="flex:1">
+    <p style="font-weight:700;font-size:14px">{{ viewer.username }}</p>
+    <p style="font-size:11px;color:#9ca3af">{{ view.viewed_at.strftime('%b %d, %H:%M') }}</p>
+  </div>
+  {% if view.took_screenshot %}
+  <span style="background:#fecaca;color:#ef4444;font-size:11px;
+    font-weight:800;padding:4px 8px;border-radius:10px">
+    📸 Screenshot
+  </span>
+  {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">👁️</p>
+  <p style="color:#9ca3af;margin-top:8px">No views yet</p>
+</div>
+{% endfor %}
+
+{% endblock %}

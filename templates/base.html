@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"/>
+</head>
+<body>
+
+{% if current_user.is_authenticated %}
+<header class="header">
+  <a href="{{ url_for('feed') }}" class="logo">Clone</a>
+  <div class="header-icons">
+    <a href="{{ url_for('discover') }}" class="icon-btn" title="Discover">🧭</a>
+    <a href="{{ url_for('notifications') }}" class="icon-btn">
+      🔔<span class="badge" id="notif-badge" style="display:none">0</span>
+    </a>
+    <a href="{{ url_for('messages') }}" class="icon-btn">💬</a>
+    <a href="{{ url_for('settings') }}" class="icon-btn">⚙️</a>
+  </div>
+</header>
+{% endif %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% for category, message in messages %}
+  <div class="flash flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
+{% endwith %}
+
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+{% if current_user.is_authenticated %}
+<nav class="bottom-nav">
+  <a href="{{ url_for('feed') }}"         class="nav-btn {% if request.endpoint == 'feed' %}active{% endif %}">🏠</a>
+  <a href="{{ url_for('explore') }}"      class="nav-btn {% if request.endpoint == 'explore' %}active{% endif %}">🔍</a>
+  <a href="{{ url_for('create_post') }}"  class="nav-btn special">➕</a>
+  <a href="{{ url_for('saved_posts') }}"  class="nav-btn {% if request.endpoint == 'saved_posts' %}active{% endif %}">🔖</a>
+  <a href="{{ url_for('chatbot') }}"      class="nav-btn {% if request.endpoint == 'chatbot' %}active{% endif %}">🤖</a>
+  <a href="{{ url_for('profile') }}"      class="nav-btn {% if request.endpoint == 'profile' %}active{% endif %}">👤</a>
+</nav>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

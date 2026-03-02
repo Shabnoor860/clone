@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 style="font-size:20px;font-weight:900;margin-bottom:16px">Activity</h2>
+{% for n in notifications %}
+<div class="notif-card {% if not n.is_read %}notif-unread{% endif %} {% if n.type=='screenshot' %}notif-screenshot{% endif %}">
+  <div style="display:flex;align-items:center;gap:12px">
+    <img src="{% if n.actor.avatar_url %}/uploads/{{ n.actor.avatar_url }}{% else %}https://i.pravatar.cc/46?u={{ n.actor.id }}{% endif %}" class="avatar-sm"/>
+    <div style="flex:1">
+      <p style="font-size:13px">
+        <span style="font-weight:800">{{ n.actor.username }}</span>
+        {% if n.type=='like' %}liked your post ❤️
+        {% elif n.type=='comment' %}commented on your post 💬
+        {% elif n.type=='follow' %}started following you 👤
+        {% elif n.type=='screenshot' %}screenshotted your story 📸
+        {% elif n.type=='seen' %}viewed your story 👁️
+        {% endif %}
+      </p>
+      <p style="font-size:11px;color:#9ca3af;margin-top:2px">{{ n.created_at.strftime('%b %d, %H:%M') }}</p>
+    </div>
+    {% if n.type=='screenshot' %}<span class="badge-red">Screenshot!</span>{% endif %}
+    {% if not n.is_read %}<div class="dot-blue"></div>{% endif %}
+  </div>
+</div>
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">🔔</p>
+  <p style="color:#9ca3af;margin-top:8px">No activity yet</p>
+</div>
+{% endfor %}
+{% endblock %}

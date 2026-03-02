@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="stories-bar">
+  {% for story in stories %}
+  <div class="story-item" onclick="viewStory({{ story.id }})">
+    <div class="story-ring {% if story.close_friends %}story-ring-cf{% endif %}">
+      {% if story.owner.avatar_url %}
+      <img src="/uploads/{{ story.owner.avatar_url }}" class="story-avatar"/>
+      {% else %}
+      <img src="https://i.pravatar.cc/60?u={{ story.owner.id }}" class="story-avatar"/>
+      {% endif %}
+    </div>
+    <span class="story-name">{{ story.owner.username }}</span>
+    {% if story.close_friends %}
+    <span style="font-size:9px;color:#16a34a;font-weight:800">⭐ CF</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% if not stories %}
+  <p style="color:#9ca3af;font-size:13px;padding:8px;align-self:center">No stories yet</p>
+  {% endif %}
+</div>
+
+{% for post in posts %}
+<div class="card post-card">
+  <div class="post-header">
+    <a href="{{ url_for('user_profile', username=post.owner.username) }}" style="display:flex;align-items:center;gap:12px;text-decoration:none;flex:1">
+      {% if post.owner.avatar_url %}
+      <img src="/uploads/{{ post.owner.avatar_url }}" class="avatar-sm ring"/>
+      {% else %}
+      <img src="https://i.pravatar.cc/40?u={{ post.owner.id }}" class="avatar-sm ring"/>
+      {% endif %}
+      <div>
+        <p class="username" style="color:#111">{{ post.owner.username }}</p>
+        <p class="post-time">{{ post.created_at.strftime('%b %d') }}</p>
+      </div>
+    </a>
+    {% if post.owner.is_online() %}
+    <span style="width:9px;height:9px;background:#22c55e;border-radius:50%;display:inline-block;margin-right:8px"></span>
+    {% endif %}
+  </div>
+
+  <div class="post-img-wrap" ondblclick="likePost({{ post.id }})">
+    <img src="/uploads/{{ post.image_url }}" class="post-img" alt="post"/>
+    <div class="heart-pop" id="heart-{{ post.id }}">❤️</div>
+  </div>
+
+  <div class="post-actions">
+    <button onclick="likePost({{ post.id }})" class="action-btn" id="like-btn-{{ post.id }}">
+      {% if post.is_liked_by(current_user) %}❤️{% else %}🤍{% endif %}
+    </button>
+    <button onclick="toggleComments({{ post.id }})" class="action-btn">💬</button>
+    <button onclick="savePost({{ post.id }}, this)" class="action-btn" id="save-btn-{{ post.id }}">
+      {% if post.is_saved_by(current_user) %}🔖{% else %}🏷️{% endif %}
+    </button>
+  </div>
+
+  <p class="likes-count" id="likes-{{ post.id }}">{{ post.likes_count() }} likes</p>
+  <p class="caption"><span class="username">{{ post.owner.username }}</span> {{ post.caption }}</p>
+
+  <div class="comments-section" id="comments-{{ post.id }}" style="display:none">
+    {% for comment in post.comments %}
+    <p class="comment-line">
+      <span class="username">{{ comment.user.username }}</span> {{ comment.text }}
+    </p>
+    {% endfor %}
+  </div>
+
+  <div class="comment-input-row">
+    <input type="text" placeholder="Add a comment…" class="comment-input"
+      id="comment-input-{{ post.id }}"
+      onkeydown="if(event.key==='Enter') submitComment({{ post.id }})"/>
+    <button onclick="submitComment({{ post.id }})" class="comment-post-btn">Post</button>
+  </div>
+</div>
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:48px">📸</p>
+  <h2 style="margin-top:12px">Your feed is empty</h2>
+  <p style="color:#9ca3af;margin-top:8px">Follow people or create your first post!</p>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:16px">
+    <a href="{{ url_for('create_post') }}" class="btn-grad"
+      style="display:inline-block;padding:12px 24px;border-radius:12px;text-decoration:none;color:#fff">
+      Create Post
+    </a>
+    <a href="{{ url_for('discover') }}"
+      style="display:inline-block;padding:12px 24px;border-radius:12px;text-decoration:none;background:#f3f4f6;color:#111;font-weight:700">
+      Discover People
+    </a>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

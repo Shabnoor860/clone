@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+  <a href="javascript:history.back()"
+    style="font-size:22px;text-decoration:none;color:#111">←</a>
+  <h2 style="font-size:18px;font-weight:900">
+    {{ user.username }}'s {{ list_type }}
+  </h2>
+</div>
+
+{% for person in people %}
+{% if person %}
+<a href="{{ url_for('user_profile', username=person.username) }}"
+  style="text-decoration:none">
+  <div style="display:flex;align-items:center;gap:12px;background:#fff;
+    border-radius:14px;border:1px solid #f0f0f0;padding:12px 14px;margin-bottom:8px">
+    {% if person.avatar_url %}
+    <img src="/uploads/{{ person.avatar_url }}" class="avatar-sm"/>
+    {% else %}
+    <img src="https://i.pravatar.cc/40?u={{ person.id }}" class="avatar-sm"/>
+    {% endif %}
+    <div style="flex:1">
+      <p style="font-weight:800;font-size:14px;color:#111">{{ person.username }}</p>
+      <p style="font-size:12px;color:#9ca3af">{{ person.full_name }}</p>
+    </div>
+    {% if person.is_online() %}
+    <span style="width:10px;height:10px;background:#22c55e;border-radius:50%;display:inline-block"></span>
+    {% endif %}
+  </div>
+</a>
+{% endif %}
+{% else %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">👤</p>
+  <p style="color:#9ca3af;margin-top:8px">No {{ list_type }} yet</p>
+</div>
+{% endfor %}
+
+{% endblock %}

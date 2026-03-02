@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-bg">
+  <div class="auth-card">
+    <h1 class="logo-big">Clone</h1>
+    <p class="tagline">Capture. Share. Connect.</p>
+
+    <div class="tab-row">
+      <a href="{{ url_for('login') }}"    class="tab {% if mode=='login' %}tab-active{% endif %}">Log In</a>
+      <a href="{{ url_for('register') }}" class="tab {% if mode=='register' %}tab-active{% endif %}">Sign Up</a>
+    </div>
+
+    {% if mode == 'register' %}
+    <form method="POST" action="{{ url_for('register') }}">
+      <input class="input" type="text"     name="full_name" placeholder="Full Name"  required/>
+      <input class="input" type="email"    name="email"     placeholder="Email"       required/>
+      <input class="input" type="text"     name="username"  placeholder="Username"    required/>
+      <input class="input" type="password" name="password"  placeholder="Password"    required/>
+      <button class="btn-grad" type="submit">Create Account</button>
+    </form>
+    {% else %}
+    <form method="POST" action="{{ url_for('login') }}">
+      <input class="input" type="text"     name="username" placeholder="Username" required/>
+      <input class="input" type="password" name="password" placeholder="Password" required/>
+      <button class="btn-grad" type="submit">Log In</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

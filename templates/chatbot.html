@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="padding:20px;min-height:75vh;display:flex;flex-direction:column">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+    <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#a855f7,#ec4899);display:flex;align-items:center;justify-content:center;font-size:22px">🤖</div>
+    <div>
+      <p style="font-weight:800;font-size:14px">Instabot</p>
+      <p style="font-size:11px;color:#22c55e">Always active</p>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+    {% for s in ['Give me a caption','Best hashtags','Editing tips','How to grow?','Story tips','Reel tips'] %}
+    <button onclick="document.getElementById('chat-input').value='{{ s }}'"
+      style="background:#f5f3ff;border:1px solid #e9d5ff;border-radius:20px;padding:6px 12px;font-size:12px;font-weight:600;color:#7c3aed;cursor:pointer;font-family:inherit">
+      {{ s }}
+    </button>
+    {% endfor %}
+  </div>
+
+  <div style="flex:1;margin-bottom:16px">
+    <div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:12px">
+      <span style="font-size:22px">🤖</span>
+      <div class="bubble bubble-theirs">Hi! I'm Instabot 🤖 Ask me about captions, hashtags, editing and more!</div>
+    </div>
+    {% if reply %}
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <div class="bubble bubble-mine">{{ request.form.get('message','') }}</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:8px">
+      <span style="font-size:22px">🤖</span>
+      <div class="bubble bubble-theirs">{{ reply }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <form method="POST" style="display:flex;gap:10px;border-top:1px solid #f0f0f0;padding-top:12px">
+    <input id="chat-input" name="message" placeholder="Ask me anything…" autocomplete="off" required
+      style="flex:1;background:#f3f4f6;border:none;border-radius:20px;padding:10px 16px;font-size:13px;outline:none;font-family:inherit"/>
+    <button type="submit"
+      style="background:linear-gradient(135deg,#a855f7,#ec4899);border:none;border-radius:50%;width:40px;height:40px;font-size:16px;cursor:pointer;color:#fff">➤</button>
+  </form>
+</div>
+{% endblock %}

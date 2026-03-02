@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<form method="GET" action="{{ url_for('explore') }}">
+  <div style="display:flex;align-items:center;gap:10px;background:#fff;border-radius:14px;padding:10px 16px;margin-bottom:16px;border:1px solid #f0f0f0">
+    <span>🔍</span>
+    <input name="q" value="{{ query }}" placeholder="Search users or posts…"
+      autocomplete="off"
+      style="flex:1;border:none;outline:none;font-size:14px;font-family:inherit"/>
+    <button type="submit"
+      style="background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border:none;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+      Search
+    </button>
+  </div>
+</form>
+
+{% if users %}
+<p style="font-size:13px;font-weight:800;color:#9ca3af;margin-bottom:10px">PEOPLE</p>
+{% for user in users %}
+<a href="{{ url_for('user_profile', username=user.username) }}" style="text-decoration:none">
+  <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:#fff;border:1px solid #f0f0f0;margin-bottom:8px">
+    {% if user.avatar_url %}
+    <img src="/uploads/{{ user.avatar_url }}" class="avatar-sm"/>
+    {% else %}
+    <img src="https://i.pravatar.cc/40?u={{ user.id }}" class="avatar-sm"/>
+    {% endif %}
+    <div style="flex:1">
+      <p style="font-weight:800;font-size:14px">{{ user.username }}</p>
+      <p style="font-size:12px;color:#9ca3af">{{ user.full_name }}</p>
+    </div>
+    <span style="background:linear-gradient(135deg,#a855f7,#ec4899);color:#fff;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700">
+      View
+    </span>
+  </div>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if query and not users and not posts %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:36px">🔍</p>
+  <p style="font-weight:700;margin-top:8px">No results for "{{ query }}"</p>
+  <p style="color:#9ca3af;font-size:13px;margin-top:4px">Try a different username</p>
+</div>
+{% endif %}
+
+{% if posts %}
+{% if users %}
+<p style="font-size:13px;font-weight:800;color:#9ca3af;margin:16px 0 10px">POSTS</p>
+{% endif %}
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px">
+  {% for post in posts %}
+  <div style="aspect-ratio:1/1;overflow:hidden;{% if loop.index == 1 and not query %}grid-column:span 2;grid-row:span 2;{% endif %}">
+    <img src="/uploads/{{ post.image_url }}" style="width:100%;height:100%;object-fit:cover;cursor:pointer"/>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if not query and not posts %}
+<div class="card" style="padding:40px;text-align:center">
+  <p style="font-size:40px">🔍</p>
+  <p style="color:#9ca3af;margin-top:8px">No posts to explore yet</p>
+</div>
+{% endif %}
+
+{% endblock %}
