@@ -12,7 +12,7 @@
     <a href="{{ url_for('messages') }}"
       style="font-size:22px;text-decoration:none;color:#111">←</a>
     {% if other.avatar_url %}
-    <img src="/uploads/{{ other.avatar_url }}" class="avatar-sm"/>
+    <img src="{{ other.avatar_url }}" class="avatar-sm"/>
     {% else %}
     <img src="https://i.pravatar.cc/40?u={{ other.id }}" class="avatar-sm"/>
     {% endif %}

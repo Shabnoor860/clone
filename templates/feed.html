@@ -6,7 +6,7 @@
   <div class="story-item" onclick="viewStory({{ story.id }})">
     <div class="story-ring {% if story.close_friends %}story-ring-cf{% endif %}">
       {% if story.owner.avatar_url %}
-      <img src="/uploads/{{ story.owner.avatar_url }}" class="story-avatar"/>
+      <img src="{{ story.owner.avatar_url }}" class="story-avatar"/>
       {% else %}
       <img src="https://i.pravatar.cc/60?u={{ story.owner.id }}" class="story-avatar"/>
       {% endif %}
@@ -27,7 +27,7 @@
   <div class="post-header">
     <a href="{{ url_for('user_profile', username=post.owner.username) }}" style="display:flex;align-items:center;gap:12px;text-decoration:none;flex:1">
       {% if post.owner.avatar_url %}
-      <img src="/uploads/{{ post.owner.avatar_url }}" class="avatar-sm ring"/>
+      <img src="{{ post.owner.avatar_url }}" class="avatar-sm ring"/>
       {% else %}
       <img src="https://i.pravatar.cc/40?u={{ post.owner.id }}" class="avatar-sm ring"/>
       {% endif %}
@@ -42,7 +42,7 @@
   </div>
 
   <div class="post-img-wrap" ondblclick="likePost({{ post.id }})">
-    <img src="/uploads/{{ post.image_url }}" class="post-img" alt="post"/>
+    <img src="{{ post.image_url }}" class="post-img" alt="post"/>
     <div class="heart-pop" id="heart-{{ post.id }}">❤️</div>
   </div>
 

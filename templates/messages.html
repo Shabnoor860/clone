@@ -11,7 +11,7 @@
   <div class="convo-card {% if convo.unread %}convo-unread{% endif %}">
 
     {% if convo.user.avatar_url %}
-    <img src="/uploads/{{ convo.user.avatar_url }}" class="avatar-md"/>
+    <img src="{{ convo.user.avatar_url }}" class="avatar-md"/>
     {% else %}
     <img src="https://i.pravatar.cc/52?u={{ convo.user.id }}"
       class="avatar-md"/>

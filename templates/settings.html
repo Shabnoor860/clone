@@ -74,7 +74,7 @@
   {% if user %}
   <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
     {% if user.avatar_url %}
-    <img src="/uploads/{{ user.avatar_url }}" class="avatar-sm"/>
+    <img src="{{ user.avatar_url }}" class="avatar-sm"/>
     {% else %}
     <img src="https://i.pravatar.cc/40?u={{ user.id }}" class="avatar-sm"/>
     {% endif %}

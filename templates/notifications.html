@@ -4,7 +4,7 @@
 {% for n in notifications %}
 <div class="notif-card {% if not n.is_read %}notif-unread{% endif %} {% if n.type=='screenshot' %}notif-screenshot{% endif %}">
   <div style="display:flex;align-items:center;gap:12px">
-    <img src="{% if n.actor.avatar_url %}/uploads/{{ n.actor.avatar_url }}{% else %}https://i.pravatar.cc/46?u={{ n.actor.id }}{% endif %}" class="avatar-sm"/>
+    <img src="{% if n.actor.avatar_url %}{{ n.actor.avatar_url }}{% else %}https://i.pravatar.cc/46?u={{ n.actor.id }}{% endif %}" class="avatar-sm"/>
     <div style="flex:1">
       <p style="font-size:13px">
         <span style="font-weight:800">{{ n.actor.username }}</span>

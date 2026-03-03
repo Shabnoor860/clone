@@ -8,13 +8,23 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
 import os
 import uuid
+import cloudinary
+import cloudinary.uploader
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'clone-secret-key-2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///clone.db'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clone-secret-key-2024')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+    'DATABASE_URL', 'sqlite:///clone.db'
+).replace('postgres://', 'postgresql://')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+os.makedirs('uploads', exist_ok=True)
+
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key    = os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET', '')
+)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
@@ -28,6 +38,17 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def upload_image(file):
+    try:
+        result = cloudinary.uploader.upload(file)
+        return result['secure_url']
+    except Exception:
+        ext      = file.filename.rsplit('.', 1)[1].lower()
+        filename = f"upload_{uuid.uuid4().hex}.{ext}"
+        file.save(os.path.join('uploads', filename))
+        return '/uploads/' + filename
+
+
 # ── MODELS ────────────────────────────────────────────
 
 class User(UserMixin, db.Model):
@@ -37,7 +58,7 @@ class User(UserMixin, db.Model):
     email           = db.Column(db.String(120), unique=True, nullable=False)
     full_name       = db.Column(db.String(100), default='')
     bio             = db.Column(db.Text, default='')
-    avatar_url      = db.Column(db.String(300), default='')
+    avatar_url      = db.Column(db.String(500), default='')
     password_hash   = db.Column(db.String(200), nullable=False)
     is_private      = db.Column(db.Boolean, default=False)
     is_active_shown = db.Column(db.Boolean, default=True)
@@ -59,10 +80,6 @@ class User(UserMixin, db.Model):
     def is_following(self, user):
         return Follow.query.filter_by(
             follower_id=self.id, following_id=user.id).first() is not None
-
-    def is_blocked_by(self, user):
-        return Block.query.filter_by(
-            blocker_id=user.id, blocked_id=self.id).first() is not None
 
     def has_blocked(self, user):
         return Block.query.filter_by(
@@ -95,7 +112,7 @@ class Post(db.Model):
     __tablename__ = 'posts'
     id         = db.Column(db.Integer, primary_key=True)
     owner_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    image_url  = db.Column(db.String(300), nullable=False)
+    image_url  = db.Column(db.String(500), nullable=False)
     caption    = db.Column(db.Text, default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     owner      = db.relationship('User', backref='posts', lazy=True)
@@ -143,7 +160,7 @@ class Story(db.Model):
     __tablename__ = 'stories'
     id            = db.Column(db.Integer, primary_key=True)
     owner_id      = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    media_url     = db.Column(db.String(300), nullable=False)
+    media_url     = db.Column(db.String(500), nullable=False)
     expires_at    = db.Column(db.DateTime, nullable=False)
     close_friends = db.Column(db.Boolean, default=False)
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
@@ -284,16 +301,17 @@ def feed():
     ]
     following_ids.append(current_user.id)
     blocked_ids = [
-        b.blocked_id for b in Block.query.filter_by(blocker_id=current_user.id).all()
+        b.blocked_id for b in Block.query.filter_by(
+            blocker_id=current_user.id).all()
     ]
     posts = Post.query.filter(
         Post.owner_id.in_(following_ids),
         ~Post.owner_id.in_(blocked_ids)
     ).order_by(Post.created_at.desc()).limit(30).all()
 
-    # Only show stories from close friends or public stories
     cf_ids = [
-        c.friend_id for c in CloseFriend.query.filter_by(user_id=current_user.id).all()
+        c.friend_id for c in CloseFriend.query.filter_by(
+            user_id=current_user.id).all()
     ]
     stories = Story.query.filter(
         Story.owner_id.in_(following_ids),
@@ -321,11 +339,9 @@ def create_post():
         if not file or not allowed_file(file.filename):
             flash('Please upload a valid image', 'error')
             return redirect(url_for('create_post'))
-        ext      = file.filename.rsplit('.', 1)[1].lower()
-        filename = f"post_{current_user.id}_{uuid.uuid4().hex}.{ext}"
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        image_url = upload_image(file)
         post = Post(owner_id=current_user.id,
-                    image_url=filename, caption=caption)
+                    image_url=image_url, caption=caption)
         db.session.add(post)
         db.session.commit()
         flash('Post shared! 📸', 'success')
@@ -406,10 +422,9 @@ def create_story():
             flash('Invalid file', 'error')
             return redirect(url_for('create_story'))
         close_friends = request.form.get('close_friends') == 'on'
-        ext      = file.filename.rsplit('.', 1)[1].lower()
-        filename = f"story_{current_user.id}_{uuid.uuid4().hex}.{ext}"
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        story = Story(owner_id=current_user.id, media_url=filename,
+        media_url = upload_image(file)
+        story = Story(owner_id=current_user.id,
+                      media_url=media_url,
                       expires_at=datetime.utcnow() + timedelta(hours=24),
                       close_friends=close_friends)
         db.session.add(story)
@@ -436,7 +451,8 @@ def view_story(story_id):
         db.session.commit()
         if story.owner_id != current_user.id:
             notif_type = 'screenshot' if screenshot else 'seen'
-            add_notification(story.owner_id, current_user.id, notif_type, story_id)
+            add_notification(story.owner_id, current_user.id,
+                             notif_type, story_id)
     return jsonify({'status': 'recorded'})
 
 
@@ -483,7 +499,6 @@ def block_user(user_id):
         db.session.delete(existing)
         db.session.commit()
         return jsonify({'status': 'unblocked'})
-    # Remove follow relationship both ways
     Follow.query.filter_by(
         follower_id=current_user.id, following_id=user_id).delete()
     Follow.query.filter_by(
@@ -506,7 +521,8 @@ def user_profile(username):
     is_following  = current_user.is_following(user)
     can_see_posts = (not user.is_private) or is_following or (user.id == current_user.id)
     posts = Post.query.filter_by(
-        owner_id=user.id).order_by(Post.created_at.desc()).all() if can_see_posts else []
+        owner_id=user.id).order_by(
+        Post.created_at.desc()).all() if can_see_posts else []
     followers = Follow.query.filter_by(following_id=user.id).all()
     following = Follow.query.filter_by(follower_id=user.id).all()
     return render_template('user_profile.html', user=user, posts=posts,
@@ -519,11 +535,13 @@ def user_profile(username):
 @login_required
 def profile():
     posts = Post.query.filter_by(
-        owner_id=current_user.id).order_by(Post.created_at.desc()).all()
+        owner_id=current_user.id).order_by(
+        Post.created_at.desc()).all()
     followers = Follow.query.filter_by(following_id=current_user.id).all()
     following = Follow.query.filter_by(follower_id=current_user.id).all()
     return render_template('profile.html', user=current_user,
-                           posts=posts, followers=followers, following=following)
+                           posts=posts, followers=followers,
+                           following=following)
 
 
 @app.route('/profile/edit', methods=['GET', 'POST'])
@@ -534,10 +552,7 @@ def edit_profile():
         current_user.bio       = request.form.get('bio', '')
         avatar = request.files.get('avatar')
         if avatar and allowed_file(avatar.filename):
-            ext      = avatar.filename.rsplit('.', 1)[1].lower()
-            filename = f"avatar_{current_user.id}_{uuid.uuid4().hex}.{ext}"
-            avatar.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            current_user.avatar_url = filename
+            current_user.avatar_url = upload_image(avatar)
         db.session.commit()
         flash('Profile updated!', 'success')
         return redirect(url_for('profile'))
@@ -575,7 +590,8 @@ def close_friends():
         c.friend_id for c in CloseFriend.query.filter_by(
             user_id=current_user.id).all()
     ]
-    return render_template('close_friends.html', friends=friends, cf_ids=cf_ids)
+    return render_template('close_friends.html',
+                           friends=friends, cf_ids=cf_ids)
 
 
 @app.route('/close-friends/<int:friend_id>/toggle', methods=['POST'])
@@ -587,7 +603,8 @@ def toggle_close_friend(friend_id):
         db.session.delete(existing)
         db.session.commit()
         return jsonify({'status': 'removed'})
-    db.session.add(CloseFriend(user_id=current_user.id, friend_id=friend_id))
+    db.session.add(CloseFriend(
+        user_id=current_user.id, friend_id=friend_id))
     db.session.commit()
     return jsonify({'status': 'added'})
 
@@ -605,8 +622,8 @@ def settings():
             db.session.commit()
             flash('Privacy settings saved!', 'success')
         elif action == 'password':
-            old_pw  = request.form.get('old_password', '')
-            new_pw  = request.form.get('new_password', '')
+            old_pw = request.form.get('old_password', '')
+            new_pw = request.form.get('new_password', '')
             if not current_user.check_password(old_pw):
                 flash('Current password is incorrect', 'error')
             elif len(new_pw) < 6:
@@ -626,7 +643,7 @@ def settings():
             else:
                 flash('Username did not match', 'error')
         return redirect(url_for('settings'))
-    blocked = Block.query.filter_by(blocker_id=current_user.id).all()
+    blocked       = Block.query.filter_by(blocker_id=current_user.id).all()
     blocked_users = [db.session.get(User, b.blocked_id) for b in blocked]
     return render_template('settings.html', blocked_users=blocked_users)
 
@@ -641,7 +658,8 @@ def messages():
     received = Message.query.filter_by(receiver_id=current_user.id).all()
     partners = {}
     for m in sent + received:
-        other_id = m.receiver_id if m.sender_id == current_user.id else m.sender_id
+        other_id = m.receiver_id if m.sender_id == current_user.id \
+                   else m.sender_id
         if other_id not in partners:
             other  = db.session.get(User, other_id)
             unread = Message.query.filter_by(
@@ -650,7 +668,8 @@ def messages():
                 is_read=False).count()
             partners[other_id] = {
                 'user': other, 'last_msg': m.text, 'unread': unread}
-    return render_template('messages.html', conversations=list(partners.values()))
+    return render_template('messages.html',
+                           conversations=list(partners.values()))
 
 
 @app.route('/messages/<int:user_id>', methods=['GET', 'POST'])
@@ -714,19 +733,15 @@ def chatbot():
         elif 'hashtag' in msg:
             reply = '#Photography #Explore #VisualStory #GoldenHour #InstaDaily'
         elif 'edit' in msg or 'filter' in msg:
-            reply = 'Boost Contrast +10, Clarity +5, warm tone. Use Lightroom or Snapseed!'
+            reply = 'Boost Contrast +10, Clarity +5, warm tone. Use Lightroom!'
         elif 'grow' in msg:
-            reply = 'Post daily, use 8-10 hashtags, reply to every comment, post at 7-9 PM!'
+            reply = 'Post daily, use 8-10 hashtags, reply to every comment!'
         elif 'story' in msg:
             reply = 'Post 3-7 stories/day, use polls and question stickers!'
-        elif 'reel' in msg:
-            reply = 'Keep Reels under 30 seconds, use trending audio!'
-        elif 'bio' in msg:
-            reply = 'Use 1-2 emojis, your niche keyword, and a call-to-action!'
         elif 'private' in msg:
             reply = 'Go to Settings → Privacy to make your account private!'
         else:
-            reply = 'Ask me about captions, hashtags, editing, growing or stories! 📸'
+            reply = 'Ask me about captions, hashtags, editing or growing! 📸'
     return render_template('chatbot.html', reply=reply)
 
 
@@ -750,8 +765,10 @@ def explore():
             Post.caption.ilike(f'%{query}%')
         ).order_by(Post.created_at.desc()).limit(30).all()
     else:
-        posts = Post.query.order_by(Post.created_at.desc()).limit(60).all()
-    return render_template('explore.html', posts=posts, users=users, query=query)
+        posts = Post.query.order_by(
+            Post.created_at.desc()).limit(60).all()
+    return render_template('explore.html', posts=posts,
+                           users=users, query=query)
 
 
 @app.route('/discover')
@@ -775,12 +792,26 @@ def discover():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    return send_from_directory('uploads', filename)
 
 
-if __name__ == "__main__":
-    import os
+if __name__ == '__main__':
     with app.app_context():
         db.create_all()
-        print("✅ Database ready!")
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+        print('✅ Database ready!')
+    app.run(debug=True, port=5000)
+```
+
+---
+
+Now also update **all your templates** — find every `/uploads/` and remove it. In VS Code press `Cmd + Shift + H`:
+
+- Find: `/uploads/`
+- Replace with: (leave empty)
+- Click **Replace All**
+
+Then push:
+```
+git add .
+git commit -m "add cloudinary support"
+git push

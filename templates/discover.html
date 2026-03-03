@@ -8,7 +8,7 @@
 <div class="card" style="padding:16px;display:flex;align-items:center;gap:14px">
   <a href="{{ url_for('user_profile', username=user.username) }}" style="text-decoration:none;display:flex;align-items:center;gap:14px;flex:1">
     {% if user.avatar_url %}
-    <img src="/uploads/{{ user.avatar_url }}" style="width:54px;height:54px;border-radius:50%;object-fit:cover"/>
+    <img src="{{ user.avatar_url }}" style="width:54px;height:54px;border-radius:50%;object-fit:cover"/>
     {% else %}
     <img src="https://i.pravatar.cc/54?u={{ user.id }}" style="width:54px;height:54px;border-radius:50%;object-fit:cover"/>
     {% endif %}
