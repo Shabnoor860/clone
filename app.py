@@ -800,18 +800,3 @@ if __name__ == '__main__':
         db.create_all()
         print('✅ Database ready!')
     app.run(debug=True, port=5000)
-```
-
----
-
-Now also update **all your templates** — find every `/uploads/` and remove it. In VS Code press `Cmd + Shift + H`:
-
-- Find: `/uploads/`
-- Replace with: (leave empty)
-- Click **Replace All**
-
-Then push:
-```
-git add .
-git commit -m "add cloudinary support"
-git push
